@@ -1,5 +1,6 @@
 # AES
-AES Verilog algo
+AES Verilog algorithm implimentation
+
 
 http://lpb.canb.auug.org.au/adfa/src/AEScalc/index.html
 
