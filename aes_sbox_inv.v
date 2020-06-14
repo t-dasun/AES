@@ -1,5 +1,5 @@
 
-module aes_sbox(
+module aes_sbox_inv(
                     input wire  [31 : 0] sword,
                     output wire [31 : 0] new_sword
                    );
