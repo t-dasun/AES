@@ -17,10 +17,10 @@ module aes_encryption_tb ();
   reg           block_ready;
   integer c;
 
-  aes_decryption 
+  aes_encryption 
   #(
   ) 
-  aes_decryption_dut 
+  aes_encryption_dut 
   (
   .aclk(aclk),    
   .aresetn(aresetn),  
@@ -56,7 +56,7 @@ module aes_encryption_tb ();
     #10
     //next     = 1'b1;
     key_init = 1'b0;
-    input_block = 128'h69c4e0d86a7b0430d8cdb78070b4c55a;//128'h6bc1bee22e409f96e93d7e117393172a;
+    input_block = 128'h00112233445566778899aabbccddeeff;//128'h6bc1bee22e409f96e93d7e117393172a;
     #10
     next     = 1'b0; 
     c=1'b1;

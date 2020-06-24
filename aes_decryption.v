@@ -5,16 +5,16 @@ module aes_decryption (
 	input aresetn,  // Asynchronous reset active low
 
 	input wire            next,//next 128 data block//if key is ready and new block arrived
-                              //must be zero next clock cycle
-	input wire            keylen,
+  
+	input wire            keylen,//must be zero next clock cycle
 	input wire [127 : 0]  key,
   input wire            key_init,
   output wire           key_ready,
 
-	input wire [127 : 0]  input_block,
-	output reg [127 : 0]  output_block,
-	output reg            block_ready
-);
+  input wire [127 : 0]  input_block,
+  output reg [127 : 0]  output_block,
+  output reg            block_ready
+  );
 
 //----------------------------------------------------------------
 // Parameters.
@@ -54,7 +54,7 @@ wire [31 :0] new_sbox ;
 
 reg [ 4 :0] state;  
 reg [ 4 :0] state_s_box;
-  
+
 reg [127:0] round_block_add_key;  
 reg [127:0] round_block_BYTE_S;
 reg [127:0] round_block_Shift_R;
@@ -79,20 +79,19 @@ assign round_inv = AES_128_NUM_ROUNDS - round;
 always @(posedge aclk) begin
   if(!aresetn) begin
     state <= STATE_IDLE;
-    block_ready <= 1'b0;
   end else begin
     case (state)
       STATE_IDLE        :
-        begin
+      begin
           if (next) begin //next && 
             state   <=  STATE_INIT;
           end
         end
-      STATE_INIT        :
+        STATE_INIT        :
         begin
           state    <=   STATE_KEY_ADD;
         end
-      STATE_KEY_ADD     :
+        STATE_KEY_ADD     :
         begin
           if (round == AES_128_NUM_ROUNDS) begin
             state   <= STATE_DONE;
@@ -102,29 +101,29 @@ always @(posedge aclk) begin
             state   <= STATE_MIX_COLUMN;
           end   
         end
-      STATE_MIX_COLUMN  :
+        STATE_MIX_COLUMN  :
         begin
           state    <=   STATE_SHIFT_ROW;
         end
-      STATE_SHIFT_ROW   :
+        STATE_SHIFT_ROW   :
         begin
           state    <=   STATE_BYTE_SUB; 
         end
-      STATE_BYTE_SUB    :
+        STATE_BYTE_SUB    :
         begin
           if (s_box_sub_done) begin
             state    <=   STATE_KEY_ADD;
           end
         end
-      STATE_DONE        :
+        STATE_DONE        :
         begin
           state       <= STATE_IDLE;
         end
-    
-      default : /* default */;
-    endcase
+        
+        default : /* default */;
+      endcase
+    end
   end
-end
 
 //init
 always @(posedge aclk) 
@@ -135,20 +134,20 @@ begin
     case (state)
 
       STATE_IDLE        :
-        begin
+      begin
           //0
           round_block_BYTE_S   <=  128'b0;
         end
-      STATE_INIT        :
+        STATE_INIT        :
         begin
           //1
           round_block_BYTE_S  <= input_block;
-         end
+        end
 
-      default : /* default */;
-    endcase
+        default : /* default */;
+      endcase
+    end
   end
-end
 
 //round key add
 always @(posedge aclk) 
@@ -162,15 +161,15 @@ begin
         round_block_add_key   <=  128'b0;
       end
       STATE_KEY_ADD     :
-        begin
+      begin
           //2
           round_block_add_key <= addroundkey(round_block_BYTE_S,round_key);
         end
-       
-      default : /* default */;
-    endcase
+        
+        default : /* default */;
+      endcase
+    end
   end
-end
 
 //mix col
 always @(posedge aclk) 
@@ -184,15 +183,15 @@ begin
         round_block_Mix_C   <=  128'b0;
       end
       STATE_MIX_COLUMN  :
-        begin
+      begin
           //3
           round_block_Mix_C <=  inv_mixcolumns(round_block_add_key);
         end
-          
-      default : /* default */;
-    endcase
+        
+        default : /* default */;
+      endcase
+    end
   end
-end
 
 //shiftrow
 always @(posedge aclk) 
@@ -206,7 +205,7 @@ begin
         round_block_Shift_R   <=  128'b0;
       end
       STATE_SHIFT_ROW   :
-        begin
+      begin
           //4
           if (round == 4'b0) begin
             round_block_Shift_R <= inv_shiftrows(round_block_add_key);
@@ -214,11 +213,11 @@ begin
             round_block_Shift_R <= inv_shiftrows(round_block_Mix_C);
           end
         end
-    
-      default : /* default */;
-    endcase
+        
+        default : /* default */;
+      endcase
+    end
   end
-end
 
 //round increment
 always @(posedge aclk) 
@@ -244,25 +243,25 @@ end
 //s_box inv
 always @(posedge aclk) begin
   if(!aresetn) begin
-     state_s_box <= STATE_SBOX_IDLE;
-     s_box_sub_done <= 1'b0;
-     round_block_BYTE_S <= 128'b0;
-  end else begin
-    case (state_s_box)
-      STATE_SBOX_IDLE   :
-      begin
-        if (state == STATE_BYTE_SUB && !s_box_sub_done) begin
-          state_s_box <= STATE_SBOX_INIT;
-        end
-        s_box_sub_done     <= 1'b0;
+   state_s_box <= STATE_SBOX_IDLE;
+   s_box_sub_done <= 1'b0;
+   round_block_BYTE_S <= 128'b0;
+ end else begin
+  case (state_s_box)
+    STATE_SBOX_IDLE   :
+    begin
+      if (state == STATE_BYTE_SUB && !s_box_sub_done) begin
+        state_s_box <= STATE_SBOX_INIT;
       end
-      STATE_SBOX_INIT   :
-      begin
-        s_box_sub_done     <= 1'b0;
-        ws0 <= round_block_Shift_R[127 : 096];
-        ws1 <= round_block_Shift_R[095 : 064];
-        ws2 <= round_block_Shift_R[063 : 032];
-        ws3 <= round_block_Shift_R[031 : 000];
+      s_box_sub_done     <= 1'b0;
+    end
+    STATE_SBOX_INIT   :
+    begin
+      s_box_sub_done     <= 1'b0;
+      ws0 <= round_block_Shift_R[127 : 096];
+      ws1 <= round_block_Shift_R[095 : 064];
+      ws2 <= round_block_Shift_R[063 : 032];
+      ws3 <= round_block_Shift_R[031 : 000];
         /*if (state == STATE_BYTE_SUB) begin
           state_s_box <= STATE_SBOX_0;
         end*/
@@ -303,7 +302,7 @@ always @(posedge aclk) begin
         state_s_box <= STATE_SBOX_IDLE;
         
       end
-    
+      
       default : ;
     endcase
   end
@@ -313,61 +312,69 @@ end
 always @(posedge aclk) 
 begin 
   if(!aresetn) begin
-    output_block      <=  128'b0;       
+    output_block      <=  128'b0;  
+    block_ready       <= 1'b0;     
   end else begin
     case (state)
-      STATE_DONE        :
+      STATE_IDLE        :
+      begin
+          if (next) begin //next && 
+            block_ready <= 1'b0;
+          end
+        end
+        STATE_DONE        :
         begin
           //6
           output_block      <=  round_block_add_key;
+          block_ready       <= 1'b1;
         end
-    
-      default : /* default */;
-    endcase
+        
+        default : /* default */;
+      endcase
+    end
   end
-end
 
-aes_key_gen 
-#(
-)
-aes_key_gen_inv_dut
-(
-  .aclk     (aclk     ),
-  .aresetn  (aresetn  ),
-  .key      (key     ),                       
-  .keylen   (keylen   ),
-  .key_init (key_init ),
-  .round    (round_inv),
-  .round_key(round_key),
-  .key_ready(key_ready),
-  .sbox_feed(sbox_feed),
-  .new_sbox (new_sbox )
+  aes_key_gen 
+  #(
+    )
+  aes_key_gen_inv_dut
+  (
+    .aclk     (aclk     ),
+    .aresetn  (aresetn  ),
+    .key      (key     ),                       
+    .keylen   (keylen   ),
+    .key_init (key_init ),
+    .round    (round_inv),
+    .round_key(round_key),
+    .key_ready(key_ready),
+    .sbox_feed(sbox_feed),
+    .new_sbox (new_sbox )
 
-);
+    );
 
-aes_sbox_inv
-#(
-)sbox_inv_dut
-(
-  .sword (sbox_inv_feed),
-  .new_sword (new_inv_sbox)
-);
+  aes_sbox_inv
+  #(
+    )sbox_inv_dut
+  (
+    .sword (sbox_inv_feed),
+    .new_sword (new_inv_sbox)
+    );
 
-sbox
-#(
-)sbox_dut_1
-(
-  .sboxw (sbox_feed),
-  .new_sboxw (new_sbox)
-);
+  sbox
+  #(
+    )sbox_dut_1
+  (
+    .sboxw (sbox_feed),
+    .new_sboxw (new_sbox)
+    );
 
 //----------------------------------------------------------------
 //functions and sub functions.
 //----------------------------------------------------------------
-  function [7 : 0] gm2(input [7 : 0] op);
-    begin
-      gm2 = {op[6 : 0], 1'b0} ^ (8'h1b & {8{op[7]}});
-    end
+function [7 : 0] gm2(input [7 : 0] op);
+  begin
+    gm2 = {op[6 : 0], 1'b0} ^ (8'h1b & {8{op[7]}});
+  end
   endfunction // gm2
 
   function [7 : 0] gm3(input [7 : 0] op);

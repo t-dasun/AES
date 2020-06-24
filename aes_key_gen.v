@@ -204,6 +204,10 @@ begin
 		round_counter <= 4'd0;
 	end else begin
 		case (state)
+			STATE_IDLE			:
+				begin
+					round_counter <= 4'b0;
+				end
 
 			STATE_KEYGEN_MID 		:
 				begin
